@@ -35,19 +35,19 @@ class AgenticRAG:
             }
         })
         # Load MCP tools
-        # self.mcp_tools = asyncio.run(self.mcp_client.get_tools())
+        self.mcp_tools = asyncio.run(self.mcp_client.get_tools())
 
         # loop = asyncio.get_event_loop()
         # self.mcp_tools = loop.run_until_complete(self.mcp_client.get_tools())
 
-        # self.workflow = self._build_workflow()
-        # self.app = self.workflow.compile(checkpointer=self.checkpointer)
-
-    async def init(self):
-        # Load MCP tools asynchronously
-        self.mcp_tools = await self.mcp_client.get_tools()
         self.workflow = self._build_workflow()
         self.app = self.workflow.compile(checkpointer=self.checkpointer)
+
+    # async def init(self):
+    #     # Load MCP tools asynchronously
+    #     self.mcp_tools = await self.mcp_client.get_tools()
+    #     self.workflow = self._build_workflow()
+    #     self.app = self.workflow.compile(checkpointer=self.checkpointer)
 
     # ---------- Nodes ----------
     def _ai_assistant(self, state: AgentState):
@@ -65,12 +65,12 @@ class AgenticRAG:
             response = chain.invoke({"question": last_message})
             return {"messages": [HumanMessage(content=response)]}
 
-    async def _vector_retriever(self, state: AgentState):
+    def _vector_retriever(self, state: AgentState):
         print("--- RETRIEVER (MCP) ---")
         query = state["messages"][-1].content
         tool = next(t for t in self.mcp_tools if t.name == "get_product_info")
-        # result = asyncio.run(tool.ainvoke({"query": query}))
-        result = await tool.ainvoke({"query": query})
+        result = asyncio.run(tool.ainvoke({"query": query}))
+        # result = await tool.ainvoke({"query": query})
         context = result if result else "No data"
         return {"messages": [HumanMessage(content=context)]}
 
